@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   }
 
   // 验证上传密码
-  const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || 'Hh12345';
+  const UPLOAD_PASSWORD = process.env.UPLOAD_PASSWORD || '12345';
   const password = req.headers['x-upload-password'] || req.query.password;
 
   if (!password || password !== UPLOAD_PASSWORD) {
