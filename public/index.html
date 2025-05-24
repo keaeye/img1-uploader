@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>GitHub 图床 - 批量上传（密码保护）</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      background: #f0f2f5;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="password"], input[type="file"] {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 8px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    input[type="file"] {
+      border-style: dashed;
+      cursor: pointer;
+      background: #fff;
+      transition: border-color 0.3s;
+    }
+    input[type="file"]:hover {
+      border-color: #0070f3;
+    }
+    button {
+      display: block;
+      margin: 0 auto 30px auto;
+      background: #0070f3;
+      border: none;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #005bb5;
+    }
+    #results {
+      background: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .result-item {
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .success a {
+      color: #0070f3;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .error {
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <h1>GitHub 图床 - 批量上传（密码保护）</h1>
+
+  <label for="password">上传密码</label>
+  <input id="password" type="password" placeholder="请输入上传密码" value="Hh12345" />
+
+  <label for="fileInput">选择文件（可多选）</label>
+  <input id="fileInput" type="file" multiple />
+
+  <button onclick="uploadFiles()">上传文件</button>
+
+  <div id="results"></div>
+
+  <script>
+    async function uploadFiles() {
+      const passwordInput = document.getElementById('password');
+      const fileInput = document.getElementById('fileInput');
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+
+      const password = passwordInput.value.trim();
+      if (!password) {
+        alert('请填写上传密码');
+        return;
+      }
+
+      const files = fileInput.files;
+      if (files.length === 0) {
+        alert('请选择至少一个文件');
+        return;
+      }
+
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append('files', file);
+      }
+
+      resultsDiv.textContent = '上传中，请稍候...';
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'x-upload-password': password
+          },
+          body: formData,
+        });
+
+        const data = await res.json();
+        resultsDiv.innerHTML = '';
+
+        if (!res.ok) {
+          resultsDiv.textContent = '上传失败：' + (data.error || '未知错误');
+          return;
+        }
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.classList.add('result-item');
+          if (item.url) {
+            div.classList.add('success');
+            div.innerHTML = `文件 <strong>${item.file}</strong> 上传成功，地址：<a href="${item.url}" target="_blank">${item.url}</a>`;
+          } else {
+            div.classList.add('error');
+            div.textContent = `文件 ${item.file} 上传失败，原因：${item.error}`;
+          }
+          resultsDiv.appendChild(div);
+        });
+      } catch (err) {
+        resultsDiv.textContent = '请求失败：' + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
