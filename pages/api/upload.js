@@ -79,7 +79,7 @@ export default async function handler(req, res) {
         const errorData = await response.json();
         results.push({ file: file.originalname, error: errorData.message || '上传失败' });
       } else {
-        const rawUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_PATH}/${fileName}`;
+        const rawUrl = `https://img1.keaeye.fun/${GITHUB_PATH}/${fileName}`;
         results.push({ file: file.originalname, url: rawUrl });
       }
     } catch (e) {
